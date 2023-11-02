@@ -1,0 +1,17 @@
+package ${package};
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Getter
+@Setter
+@Data
+public class ${entityName}Dto {
+#foreach ($attribute in $dtoAttributes)
+private $attribute.type $attribute.name;
+#end
+
+
+}

@@ -1,0 +1,23 @@
+package ${package};
+
+
+public class ${entityName} {
+#foreach ($attribute in $attributes)
+private $attribute.type $attribute.name;
+#end
+
+public ${entityName}() {
+// Default constructor
+}
+
+#foreach ($attribute in $attributes)
+public $attribute.type get${attribute.name.substring(0,1).toUpperCase()}${attribute.name.substring(1)}() {
+    return $attribute.name;
+}
+
+public void set${attribute.name.substring(0,1).toUpperCase()}${attribute.name.substring(1)}($attribute.type $attribute.name) {
+    this.$attribute.name = $attribute.name;
+}
+#end
+
+}
