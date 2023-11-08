@@ -1,6 +1,6 @@
 # genex-maven-plugin
 
-This is a Maven plugin for automatically generating classes for an api service:
+This is a Maven plugin for automatically generating classes for a Spring Boot api service:
 - Entity class
 - Dto class
 - Repository class (JPA Repository)
@@ -20,17 +20,37 @@ It can also automatically add lombok and mapstruct dependencies to the project.
 - Java 11
 
 ## Installation
-Include the plugin as a dependency in your Maven project. Inside build > plugins
-```
+#### 1. Include the plugin as a dependency in your Maven project. Inside build > plugins
+```xml
 <plugins>
   ...
   <plugin>
-    <groupId>com.samwmd</groupId>
+    <groupId>io.github.sam-wmd</groupId>
     <artifactId>genex-maven-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
   </plugin>
 </plugins>
 ```
+#### 2. Add the nexus repository to pom.xml
+```xml
+<repositories>
+    <repository>
+      <id>ossrh</id>
+      <name>nexus-snapshot-repository</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+</repositories>
+```
+ 
+#### 3. Reload the project
+
+   ![img_1.png](img_1.png)
+
+#### 4. Add lombok and mapstruct dependencies (Optional)
+
+You can do this manually or with this pre-built command:
+    
+` mvn genex:add-lombok-mapstruct `
 
 ## Usage
 ### Generating classes 

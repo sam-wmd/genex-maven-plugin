@@ -58,7 +58,7 @@ public class GenexUtil {
             String generateRepositoryArg,
             String generateMapperArg) throws IOException {
 
-        entityName = StringUtils.capitalize(entityName);
+        entityName = entityName.substring(0, 1).toUpperCase() + entityName.substring(1);
         // Parse the attributes provided by the user
         List<Attribute> attributeList = parseAttributes(attributes);
         List<Attribute> dtoAttributeList = dtoAttributes == null ? attributeList : parseAttributes(dtoAttributes);
