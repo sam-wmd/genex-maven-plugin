@@ -81,21 +81,18 @@ public class DependencyMojo extends AbstractMojo {
         );
     }
 
-    private Model initializeMavenProjectModel(Map<String, String> properties) {
+    private Model initializeMavenProjectModel(Map<String, String> properties, List<Dependency> dependencies) {
 
         Model model = mavenProject.getModel();
-        // get pom file from model
+
         File pomFile = model.getPomFile();
-        // edit pom file using xpp3
+
         try (FileReader reader = new FileReader(pomFile)){
+
             MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
             model = xpp3Reader.read(reader);
 
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (XmlPullParserException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -103,10 +100,14 @@ public class DependencyMojo extends AbstractMojo {
             model.addProperty(entry.getKey(), entry.getValue());
         }
 
+        for( var d : dependencies){
+            model.addDependency(d);
+        }
+
         return model;
     }
 
-    private void registerLombokCompilerPlugin(Model model, Plugin lombokMapstructPlugin, Configuration config) {
+    private void registerCompilerPlugin(Model model, Configuration config) {
 
         Plugin mavenCompilerPlugin =
                 model.getBuild()
@@ -117,7 +118,7 @@ public class DependencyMojo extends AbstractMojo {
                         .orElse(null);
 
         if (mavenCompilerPlugin == null){
-            model.getBuild().addPlugin(lombokMapstructPlugin);
+            model.getBuild().addPlugin(createLombokMapstructPlugin(config));
         }else {
             model.getBuild().removePlugin(mavenCompilerPlugin);
             mavenCompilerPlugin.setConfiguration(config);
@@ -131,8 +132,6 @@ public class DependencyMojo extends AbstractMojo {
             xpp3Writer.write(writer, model);
 
             getLog().info("pom.xml updated !");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -142,21 +141,18 @@ public class DependencyMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         Model model = initializeMavenProjectModel(
-                Map.of("org.mapstruct.version","1.5.5.Final","lombok.version","1.18.30")
+                Map.of("org.mapstruct.version","1.5.5.Final","lombok.version","1.18.30"),
+                List.of(
+                        createMapstructDependency(),
+                        createMapstructProcessorDependency(),
+                        createLombokDependency()
+                )
         );
-
-        model.addDependency(createMapstructDependency());
-
-        model.addDependency(createMapstructProcessorDependency());
-
-        model.addDependency(createLombokDependency());
 
         Configuration config = new Configuration();
         config.setAnnotationProcessorPaths(getAnnotationProcessorPathList());
 
-        Plugin lombokMapstructPlugin = createLombokMapstructPlugin(config);
-
-        registerLombokCompilerPlugin(model, lombokMapstructPlugin, config);
+        registerCompilerPlugin(model, config);
 
         updatePomFile(model);
     }
