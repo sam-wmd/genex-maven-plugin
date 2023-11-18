@@ -2,8 +2,6 @@ package com.samwmd.util;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import javax.annotation.PostConstruct;
@@ -14,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,18 +73,27 @@ public class GenexUtil {
         generateEntityClass();
         generateDto();
 
-        if (isBoolean(generateMapperArg)) {
+        if (parseBoolean(generateMapperArg)) {
             generateMapstructMapper();
+        } else {
+            log.info("Generating Mapstruct mapper disabled," +
+                    " in order to enable pass \"t\" or \"true\" as generateMapper argument" +
+                    "config value passed: " + generateMapperArg);
         }
-        if (isBoolean(generateRepositoryArg)) {
+        if (parseBoolean(generateRepositoryArg)) {
             generateRepository();
+        } else {
+            log.info("Generating repository disabled," +
+                    " in order to enable pass \"t\" or \"true\" as generateRepository argument" +
+                    "config value passed: " + generateMapperArg);
         }
     }
 
-    private boolean isBoolean(String arg) {
+    private boolean parseBoolean(String arg) {
         if (arg == null) {
             return false;
         }
+
         return List.of("true","t").contains(arg.toLowerCase());
     }
 
