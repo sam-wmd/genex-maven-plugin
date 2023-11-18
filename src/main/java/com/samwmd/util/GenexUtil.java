@@ -114,7 +114,7 @@ public class GenexUtil {
     }
     private void generateDto(){
         String dir = outputDir+"/dto";
-        velocityUtil.getContext().put("dtoAttributes", attributeList);
+        velocityUtil.getContext().put("dtoAttributes", dtoAttributeList);
         generateSource(entityName+"Dto", dir, DTO_TEMPLATE_NAME);
     }
 
