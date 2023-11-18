@@ -1,7 +1,7 @@
 package ${package};
 
-
 public class ${entityName} {
+
 #foreach ($attribute in $attributes)
 private $attribute.type $attribute.name;
 #end

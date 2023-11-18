@@ -9,9 +9,9 @@ import lombok.AllArgsConstructor;
 @Setter
 @Data
 public class ${entityName}Dto {
+
 #foreach ($attribute in $dtoAttributes)
 private $attribute.type $attribute.name;
 #end
-
 
 }
