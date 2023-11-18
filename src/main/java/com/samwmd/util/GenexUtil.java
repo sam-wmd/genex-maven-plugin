@@ -15,14 +15,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Named
 @Singleton
 @Slf4j
 @Setter
 public class GenexUtil {
-
 
     private static final String ENTITY_TEMPLATE_NAME = "Entity.vm";
     private static final String LOMBOK_ENTITY_TEMPLATE_NAME = "LombokEntity.vm";
@@ -62,12 +63,9 @@ public class GenexUtil {
         // Parse the attributes provided by the user
         List<Attribute> attributeList = parseAttributes(attributes);
         List<Attribute> dtoAttributeList = dtoAttributes == null ? attributeList : parseAttributes(dtoAttributes);
-        String idType;
-        if (entityId == null){
-            idType = getIdType(attributeList);
-        }else{
-            idType = getIdType(attributeList,entityId);
-        }
+
+        String idType = entityId == null ? getIdTypeOrElseFirstAttributesType(attributeList) : getIdType(attributeList,entityId);
+
         setEntityName(entityName);
         setIdType(idType);
         setAttributeList(attributeList);
@@ -78,18 +76,18 @@ public class GenexUtil {
         generateEntityClass();
         generateDto();
 
-        if (isTrue(generateMapperArg))
+        if (isBoolean(generateMapperArg)) {
             generateMapstructMapper();
-
-        if (isTrue(generateRepositoryArg))
+        }
+        if (isBoolean(generateRepositoryArg)) {
             generateRepository();
+        }
     }
 
-    public boolean isTrue(String arg) throws IllegalArgumentException{
-        if (arg == null) return false;
-        if ( !List.of("true","false","f","t").contains(arg.toLowerCase()))
-            throw new IllegalArgumentException("Illegal argument. You provided: "+arg+". Accepted values are ('true', 't', 'false', 'f')");
-
+    private boolean isBoolean(String arg) {
+        if (arg == null) {
+            return false;
+        }
         return List.of("true","t").contains(arg.toLowerCase());
     }
 
@@ -100,17 +98,18 @@ public class GenexUtil {
      * @param attributeList
      * @return String
      */
-    private String getIdType(List<Attribute> attributeList) {
-        Attribute attribute = attributeList.stream().filter(a->a.getName().toLowerCase().equals("id")).findFirst().orElse(null);
-        return attribute == null ? attributeList.stream().findFirst().get().getType() : attribute.getType();
+    private String getIdTypeOrElseFirstAttributesType(List<Attribute> attributeList) {
+        return attributeList.stream()
+                .filter(a-> a.getName().equalsIgnoreCase("id"))
+                .findFirst().orElse(attributeList.stream().findFirst().get()).getType();
     }
 
     private String getIdType(List<Attribute> attributeList, String idName){
-        Attribute attribute = attributeList.stream().filter(a->a.getName().toLowerCase() == idName.toLowerCase()).findFirst().orElse(null);
-        if (attribute == null){
-            throw new IllegalArgumentException("The provided idName ("+idName+") cannot be found in the entity's attributes.");
-        }
-        return attribute.getType();
+       return attributeList.stream()
+                .filter(a-> a.getName().equalsIgnoreCase(idName))
+                .findFirst()
+                .orElseThrow( () -> new IllegalArgumentException("The provided idName ("+idName+") cannot be found in the entity's attributes."))
+                .getType();
     }
     private void generateDto(){
         String dir = outputDir+"/dto";
@@ -120,8 +119,7 @@ public class GenexUtil {
 
     private void generateRepository() {
         String dir = outputDir+"/repository";
-        String templateName = REPOSITORY_TEMPLATE_NAME;
-        generateSource(entityName+"Repository", dir, templateName);
+        generateSource(entityName+"Repository", dir, REPOSITORY_TEMPLATE_NAME);
     }
 
     private void generateEntityClass() {
@@ -138,37 +136,28 @@ public class GenexUtil {
 
     private void generateMapstructMapper(){
         String dir = outputDir+"/mapper";
-        String templateName = MAPPER_TEMPLATE_NAME;
-        generateSource(entityName+"Mapper",dir,templateName);
+        generateSource(entityName+"Mapper",dir,MAPPER_TEMPLATE_NAME);
     }
     private void generateSource(String className, String outputDir, String templateName) {
+
         createDirectoryIfNotExists(outputDir);
         velocityUtil.getContext().put("package", outputDir.replace("/",".").split("java.")[1]);
 
-        Template template = velocityEngine.getTemplate(templateName);
-        FileWriter fileWriter = null;
-        try {
-            fileWriter = new FileWriter(outputDir +"/"+className+".java");
-            template.merge(context, fileWriter);
-            fileWriter.close();
+        try(FileWriter fileWriter = new FileWriter(outputDir +"/"+className+".java")) {
+            velocityEngine.getTemplate(templateName).merge(context, fileWriter);
         } catch (IOException e) {
             System.err.println("Error while generating "+templateName.split(".")[0]+" class for : "+className);
         }
     }
 
     public List<Attribute> parseAttributes(String attributes) {
-        String[] attributeArray = attributes.split(";");
-        List<Attribute> attributeList = new ArrayList<>();
 
-        for (String attributeString : attributeArray) {
-            String[] attributeParts = attributeString.trim().split(":");
-            if (attributeParts.length == 2) {
-                String attributeName = attributeParts[0].trim();
-                String attributeType = attributeParts[1].trim();
-                attributeList.add(new Attribute(attributeName, attributeType));
-            }
-        }
-        return attributeList;
+        return Arrays.stream(attributes.split(";"))
+                .map(String::trim)
+                .map(atributeString -> atributeString.split(":"))
+                .filter(attributeParts -> attributeParts.length == 2)
+                .map(attributeParts -> new Attribute(attributeParts[0].trim(), attributeParts[1].trim()))
+                .collect(Collectors.toList());
     }
 
     private void createDirectoryIfNotExists(String pathName){
@@ -181,6 +170,5 @@ public class GenexUtil {
             }
         }
     }
-
 }
 

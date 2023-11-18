@@ -8,5 +8,4 @@ import lombok.*;
 public class Attribute {
     private String name;
     private String type;
-
 }

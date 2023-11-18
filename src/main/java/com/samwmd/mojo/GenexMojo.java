@@ -116,12 +116,9 @@ public class GenexMojo extends AbstractMojo {
         }
     }
 
-
     public boolean projectHasLombokDependency(){
         List<Dependency> dependencies = mavenProject.getDependencies();
         return dependencies.stream().anyMatch( dependency -> "org.projectlombok".equals(dependency.getGroupId()) &&
                 "lombok".equals(dependency.getArtifactId()));
     }
-
-
 }
