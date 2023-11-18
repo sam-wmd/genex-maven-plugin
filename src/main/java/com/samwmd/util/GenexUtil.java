@@ -85,7 +85,7 @@ public class GenexUtil {
         } else {
             log.info("Generating repository disabled," +
                     " in order to enable pass \"t\" or \"true\" as generateRepository argument" +
-                    "config value passed: " + generateMapperArg);
+                    "config value passed: " + generateRepositoryArg);
         }
     }
 
