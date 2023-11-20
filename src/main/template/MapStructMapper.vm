@@ -5,8 +5,8 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface ${entityName}Mapper{
-    ${entityName}Mapper INSTANCE = Mappers.getMapper(${entityName}Mapper.class);
 
+    ${entityName}Mapper INSTANCE = Mappers.getMapper(${entityName}Mapper.class);
 
     ${entityName} toEntity(${entityName}Dto dto);
     ${entityName}Dto toDto(${entityName} entity);

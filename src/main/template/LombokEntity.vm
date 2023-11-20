@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ${entityName} {
+
 #foreach ($attribute in $attributes)
 private $attribute.type $attribute.name;
 #end
