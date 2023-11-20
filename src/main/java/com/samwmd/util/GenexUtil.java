@@ -53,8 +53,8 @@ public class GenexUtil {
             String dtoAttributes,
             String outputDir,
             boolean useLombok,
-            String generateRepositoryArg,
-            String generateMapperArg) throws IOException {
+            boolean generateRepositoryArg,
+            boolean generateMapperArg) throws IOException {
 
         entityName = entityName.substring(0, 1).toUpperCase() + entityName.substring(1);
         // Parse the attributes provided by the user
@@ -73,37 +73,12 @@ public class GenexUtil {
         generateEntityClass();
         generateDto();
 
-        try{
-            if (parseBoolean(generateMapperArg)) {
-                generateMapstructMapper();
-            }
-        } catch(IllegalArgumentException e) {
-            log.error("Generating mapstruct mapper failed: " + e + ". Terminating process...");
-            System.exit(1);
+        if (generateMapperArg) {
+            generateMapstructMapper();
         }
-
-        try{
-            if (parseBoolean(generateRepositoryArg)) {
-                generateRepository();
-            }
-        }catch(IllegalArgumentException e) {
-            log.error("Generating repository failed: " + e + ". Terminating process...");
-            System.exit(1);
+        if (generateRepositoryArg) {
+            generateRepository();
         }
-    }
-
-    private boolean parseBoolean(String arg) {
-        if (arg == null) {
-            return false;
-        }
-
-        if(!List.of("true", "t", "false", "f").contains(arg.toLowerCase())) {
-            throw new IllegalArgumentException(
-                    "Illegal argument. You've provided: "+arg+". Accepted values are ('true', 't', 'false', 'f')"
-            );
-        }
-
-        return List.of("true","t").contains(arg.toLowerCase());
     }
 
     /**
