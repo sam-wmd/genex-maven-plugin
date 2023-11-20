@@ -73,25 +73,34 @@ public class GenexUtil {
         generateEntityClass();
         generateDto();
 
-        if (parseBoolean(generateMapperArg)) {
-            generateMapstructMapper();
-        } else {
-            log.info("Generating Mapstruct mapper disabled," +
-                    " in order to enable pass \"t\" or \"true\" as generateMapper argument" +
-                    "config value passed: " + generateMapperArg);
+        try{
+            if (parseBoolean(generateMapperArg)) {
+                generateMapstructMapper();
+            }
+        } catch(IllegalArgumentException e) {
+            log.error("Generating mapstruct mapper failed: " + e + ". Terminating process...");
+            System.exit(1);
         }
-        if (parseBoolean(generateRepositoryArg)) {
-            generateRepository();
-        } else {
-            log.info("Generating repository disabled," +
-                    " in order to enable pass \"t\" or \"true\" as generateRepository argument" +
-                    "config value passed: " + generateRepositoryArg);
+
+        try{
+            if (parseBoolean(generateRepositoryArg)) {
+                generateRepository();
+            }
+        }catch(IllegalArgumentException e) {
+            log.error("Generating repository failed: " + e + ". Terminating process...");
+            System.exit(1);
         }
     }
 
     private boolean parseBoolean(String arg) {
         if (arg == null) {
             return false;
+        }
+
+        if(!List.of("true", "t", "false", "f").contains(arg.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Illegal argument. You've provided: "+arg+". Accepted values are ('true', 't', 'false', 'f')"
+            );
         }
 
         return List.of("true","t").contains(arg.toLowerCase());
