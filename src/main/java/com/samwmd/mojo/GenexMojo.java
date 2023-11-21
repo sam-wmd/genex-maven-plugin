@@ -2,6 +2,7 @@ package com.samwmd.mojo;
 
 import com.samwmd.util.GenexUtil;
 import com.samwmd.util.VelocityUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -22,6 +23,7 @@ import java.util.List;
  *     mvn genex:generate -DentityName=Person -Dattributes='id:Long;username:String' -DdtoAttributes='username:String'
  * </pre>
  */
+@Slf4j
 @Mojo(name="generate", defaultPhase = LifecyclePhase.INITIALIZE)
 public class GenexMojo extends AbstractMojo {
 
@@ -110,12 +112,23 @@ public class GenexMojo extends AbstractMojo {
         // generate classes
         getLog().info("genMapper: "+generateMapper);
         try {
-            this.genexUtil.generateCode(entityName,entityId,attributes,dtoAttributes,outputDirectoryPath, projectHasLombokDependency(), generateRepository, generateMapper);
+            this.genexUtil.generateCode(
+                    entityName,
+                    entityId,
+                    attributes,
+                    dtoAttributes,
+                    outputDirectoryPath,
+                    projectHasLombokDependency(),
+                    parseBoolean(generateRepository),
+                    parseBoolean(generateMapper));
+
+        } catch (IllegalArgumentException e) {
+            log.error("Generating code failed: " + e + ". Process terminated.");
+            System.exit(1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     public boolean projectHasLombokDependency(){
         List<Dependency> dependencies = mavenProject.getDependencies();
@@ -123,5 +136,17 @@ public class GenexMojo extends AbstractMojo {
                 "lombok".equals(dependency.getArtifactId()));
     }
 
+    private boolean parseBoolean(String arg) {
+        if (arg == null) {
+            return false;
+        }
 
+        if(!List.of("true", "t", "false", "f").contains(arg.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Illegal argument. You've provided: "+arg+". Accepted values are ('true', 't', 'false', 'f')"
+            );
+        }
+
+        return List.of("true","t").contains(arg.toLowerCase());
+    }
 }

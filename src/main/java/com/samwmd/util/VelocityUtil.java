@@ -14,10 +14,8 @@ import java.util.Properties;
 @Getter
 public class VelocityUtil {
 
-
-    private VelocityContext context = new VelocityContext();
-
-    private VelocityEngine velocityEngine;
+    private final VelocityContext context = new VelocityContext();
+    private final VelocityEngine velocityEngine;
 
     public VelocityUtil(){
         Properties p = new Properties();
